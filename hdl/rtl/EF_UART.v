@@ -290,6 +290,7 @@ module UART_RX #(parameter NUM_SAMPLES = 16, MDW = 8)(
             count_reg <= 0;
             data_reg <= 0;
             p_error_reg <= 0;
+            f_error_reg <= 0;
         end else begin
             current_state <= next_state;
             b_reg <= b_next;

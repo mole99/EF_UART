@@ -66,7 +66,10 @@ module EF_UART_AHBL #(
 
   wire clk_gated_en = GCLK_REG[0];
   ef_util_gating_cell clk_gate_cell (
-
+    `ifdef USE_POWER_PINS 
+        .vpwr   (1'b1),
+        .vgnd   (1'b0),
+    `endif // CLKG_SKY130_HD
       // USE_POWER_PINS
       .clk(HCLK),
       .clk_en(clk_gated_en),
@@ -79,7 +82,7 @@ module EF_UART_AHBL #(
   reg last_HSEL, last_HWRITE;
   reg [31:0] last_HADDR;
   reg [ 1:0] last_HTRANS;
-  always @(posedge HCLK or negedge HRESETn) begin
+  always @(posedge HCLK, negedge HRESETn) begin
     if (~HRESETn) begin
       last_HSEL   <= 1'b0;
       last_HADDR  <= 1'b0;
@@ -135,7 +138,7 @@ module EF_UART_AHBL #(
 
   reg [15:0] PR_REG;
   assign prescaler = PR_REG;
-  always @(posedge HCLK or negedge HRESETn)
+  always @(posedge HCLK, negedge HRESETn)
     if (~HRESETn) PR_REG <= 0;
     else if (ahbl_we & (last_HADDR[16-1:0] == PR_REG_OFFSET)) PR_REG <= HWDATA[16-1:0];
 
@@ -145,7 +148,7 @@ module EF_UART_AHBL #(
   assign rx_en = CTRL_REG[2 : 2];
   assign loopback_en = CTRL_REG[3 : 3];
   assign glitch_filter_en = CTRL_REG[4 : 4];
-  always @(posedge HCLK or negedge HRESETn)
+  always @(posedge HCLK, negedge HRESETn)
     if (~HRESETn) CTRL_REG <= 0;
     else if (ahbl_we & (last_HADDR[16-1:0] == CTRL_REG_OFFSET)) CTRL_REG <= HWDATA[5-1:0];
 
@@ -154,13 +157,13 @@ module EF_UART_AHBL #(
   assign stop_bits_count = CFG_REG[4 : 4];
   assign parity_type = CFG_REG[7 : 5];
   assign timeout_bits = CFG_REG[13 : 8];
-  always @(posedge HCLK or negedge HRESETn)
+  always @(posedge HCLK, negedge HRESETn)
     if (~HRESETn) CFG_REG <= 'h3F08;
     else if (ahbl_we & (last_HADDR[16-1:0] == CFG_REG_OFFSET)) CFG_REG <= HWDATA[14-1:0];
 
   reg [MDW-1:0] MATCH_REG;
   assign match_data = MATCH_REG;
-  always @(posedge HCLK or negedge HRESETn)
+  always @(posedge HCLK, negedge HRESETn)
     if (~HRESETn) MATCH_REG <= 0;
     else if (ahbl_we & (last_HADDR[16-1:0] == MATCH_REG_OFFSET)) MATCH_REG <= HWDATA[MDW-1:0];
 
@@ -169,14 +172,14 @@ module EF_UART_AHBL #(
 
   reg [FAW-1:0] RX_FIFO_THRESHOLD_REG;
   assign rxfifotr = RX_FIFO_THRESHOLD_REG[(FAW-1) : 0];
-  always @(posedge HCLK or negedge HRESETn)
+  always @(posedge HCLK, negedge HRESETn)
     if (~HRESETn) RX_FIFO_THRESHOLD_REG <= 0;
     else if (ahbl_we & (last_HADDR[16-1:0] == RX_FIFO_THRESHOLD_REG_OFFSET))
       RX_FIFO_THRESHOLD_REG <= HWDATA[FAW-1:0];
 
   reg [0:0] RX_FIFO_FLUSH_REG;
   assign rx_fifo_flush = RX_FIFO_FLUSH_REG[0 : 0];
-  always @(posedge HCLK or negedge HRESETn)
+  always @(posedge HCLK, negedge HRESETn)
     if (~HRESETn) RX_FIFO_FLUSH_REG <= 0;
     else if (ahbl_we & (last_HADDR[16-1:0] == RX_FIFO_FLUSH_REG_OFFSET))
       RX_FIFO_FLUSH_REG <= HWDATA[1-1:0];
@@ -187,21 +190,21 @@ module EF_UART_AHBL #(
 
   reg [FAW-1:0] TX_FIFO_THRESHOLD_REG;
   assign txfifotr = TX_FIFO_THRESHOLD_REG[(FAW-1) : 0];
-  always @(posedge HCLK or negedge HRESETn)
+  always @(posedge HCLK, negedge HRESETn)
     if (~HRESETn) TX_FIFO_THRESHOLD_REG <= 0;
     else if (ahbl_we & (last_HADDR[16-1:0] == TX_FIFO_THRESHOLD_REG_OFFSET))
       TX_FIFO_THRESHOLD_REG <= HWDATA[FAW-1:0];
 
   reg [0:0] TX_FIFO_FLUSH_REG;
   assign tx_fifo_flush = TX_FIFO_FLUSH_REG[0 : 0];
-  always @(posedge HCLK or negedge HRESETn)
+  always @(posedge HCLK, negedge HRESETn)
     if (~HRESETn) TX_FIFO_FLUSH_REG <= 0;
     else if (ahbl_we & (last_HADDR[16-1:0] == TX_FIFO_FLUSH_REG_OFFSET))
       TX_FIFO_FLUSH_REG <= HWDATA[1-1:0];
     else TX_FIFO_FLUSH_REG <= 1'h0 & TX_FIFO_FLUSH_REG;
 
   localparam GCLK_REG_OFFSET = 16'hFF10;
-  always @(posedge HCLK or negedge HRESETn)
+  always @(posedge HCLK, negedge HRESETn)
     if (~HRESETn) GCLK_REG <= 0;
     else if (ahbl_we & (last_HADDR[16-1:0] == GCLK_REG_OFFSET)) GCLK_REG <= HWDATA[1-1:0];
 
@@ -210,10 +213,10 @@ module EF_UART_AHBL #(
   reg  [   9:0] RIS_REG;
 
   wire [10-1:0] MIS_REG = RIS_REG & IM_REG;
-  always @(posedge HCLK or negedge HRESETn)
+  always @(posedge HCLK, negedge HRESETn)
     if (~HRESETn) IM_REG <= 0;
     else if (ahbl_we & (last_HADDR[16-1:0] == IM_REG_OFFSET)) IM_REG <= HWDATA[10-1:0];
-  always @(posedge HCLK or negedge HRESETn)
+  always @(posedge HCLK, negedge HRESETn)
     if (~HRESETn) IC_REG <= 10'b0;
     else if (ahbl_we & (last_HADDR[16-1:0] == IC_REG_OFFSET)) IC_REG <= HWDATA[10-1:0];
     else IC_REG <= 10'd0;
@@ -230,7 +233,7 @@ module EF_UART_AHBL #(
   wire [0:0] RTO = timeout_flag;
 
   integer _i_;
-  always @(posedge HCLK or negedge HRESETn)
+  always @(posedge HCLK, negedge HRESETn)
     if (~HRESETn) RIS_REG <= 0;
     else begin
       for (_i_ = 0; _i_ < 1; _i_ = _i_ + 1) begin
