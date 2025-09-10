@@ -1,19 +1,19 @@
 /*
-	Copyright 2025 Efabless Corp.
+    Copyright 2025 Efabless Corp.
 
-	Author: Efabless Corp. (ip_admin@efabless.com)
+    Author: Efabless Corp. (ip_admin@efabless.com)
 
-	Licensed under the Apache License, Version 2.0 (the "License");
-	you may not use this file except in compliance with the License.
-	You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-	    www.apache.org/licenses/LICENSE-2.0
+        www.apache.org/licenses/LICENSE-2.0
 
-	Unless required by applicable law or agreed to in writing, software
-	distributed under the License is distributed on an "AS IS" BASIS,
-	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-	See the License for the specific language governing permissions and
-	limitations under the License.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
 
 */
 
@@ -221,61 +221,52 @@ module EF_UART_AHBL #(
     else if (ahbl_we & (last_HADDR[16-1:0] == IC_REG_OFFSET)) IC_REG <= HWDATA[10-1:0];
     else IC_REG <= 10'd0;
 
-  wire [0:0] TXE = tx_empty;
-  wire [0:0] RXF = rx_full;
-  wire [0:0] TXB = tx_level_below;
-  wire [0:0] RXA = rx_level_above;
-  wire [0:0] BRK = break_flag;
-  wire [0:0] MATCH = match_flag;
-  wire [0:0] FE = frame_error_flag;
-  wire [0:0] PRE = parity_error_flag;
-  wire [0:0] OR = overrun_flag;
-  wire [0:0] RTO = timeout_flag;
+  wire TXE = tx_empty;
+  wire RXF = rx_full;
+  wire TXB = tx_level_below;
+  wire RXA = rx_level_above;
+  wire BRK = break_flag;
+  wire MATCH = match_flag;
+  wire FE = frame_error_flag;
+  wire PRE = parity_error_flag;
+  wire OR = overrun_flag;
+  wire RTO = timeout_flag;
 
-  integer _i_;
-  always @(posedge HCLK, negedge HRESETn)
-    if (~HRESETn) RIS_REG <= 0;
-    else begin
-      for (_i_ = 0; _i_ < 1; _i_ = _i_ + 1) begin
-        if (IC_REG[_i_]) RIS_REG[_i_] <= 1'b0;
-        else if (TXE[_i_-0] == 1'b1) RIS_REG[_i_] <= 1'b1;
-      end
-      for (_i_ = 1; _i_ < 2; _i_ = _i_ + 1) begin
-        if (IC_REG[_i_]) RIS_REG[_i_] <= 1'b0;
-        else if (RXF[_i_-1] == 1'b1) RIS_REG[_i_] <= 1'b1;
-      end
-      for (_i_ = 2; _i_ < 3; _i_ = _i_ + 1) begin
-        if (IC_REG[_i_]) RIS_REG[_i_] <= 1'b0;
-        else if (TXB[_i_-2] == 1'b1) RIS_REG[_i_] <= 1'b1;
-      end
-      for (_i_ = 3; _i_ < 4; _i_ = _i_ + 1) begin
-        if (IC_REG[_i_]) RIS_REG[_i_] <= 1'b0;
-        else if (RXA[_i_-3] == 1'b1) RIS_REG[_i_] <= 1'b1;
-      end
-      for (_i_ = 4; _i_ < 5; _i_ = _i_ + 1) begin
-        if (IC_REG[_i_]) RIS_REG[_i_] <= 1'b0;
-        else if (BRK[_i_-4] == 1'b1) RIS_REG[_i_] <= 1'b1;
-      end
-      for (_i_ = 5; _i_ < 6; _i_ = _i_ + 1) begin
-        if (IC_REG[_i_]) RIS_REG[_i_] <= 1'b0;
-        else if (MATCH[_i_-5] == 1'b1) RIS_REG[_i_] <= 1'b1;
-      end
-      for (_i_ = 6; _i_ < 7; _i_ = _i_ + 1) begin
-        if (IC_REG[_i_]) RIS_REG[_i_] <= 1'b0;
-        else if (FE[_i_-6] == 1'b1) RIS_REG[_i_] <= 1'b1;
-      end
-      for (_i_ = 7; _i_ < 8; _i_ = _i_ + 1) begin
-        if (IC_REG[_i_]) RIS_REG[_i_] <= 1'b0;
-        else if (PRE[_i_-7] == 1'b1) RIS_REG[_i_] <= 1'b1;
-      end
-      for (_i_ = 8; _i_ < 9; _i_ = _i_ + 1) begin
-        if (IC_REG[_i_]) RIS_REG[_i_] <= 1'b0;
-        else if (OR[_i_-8] == 1'b1) RIS_REG[_i_] <= 1'b1;
-      end
-      for (_i_ = 9; _i_ < 10; _i_ = _i_ + 1) begin
-        if (IC_REG[_i_]) RIS_REG[_i_] <= 1'b0;
-        else if (RTO[_i_-9] == 1'b1) RIS_REG[_i_] <= 1'b1;
-      end
+    always_ff @(posedge HCLK, negedge HRESETn) begin
+        if (~HRESETn) begin
+            RIS_REG <= 0;
+        end else begin
+
+            if (IC_REG[0]) RIS_REG[0] <= 1'b0;
+            else if (TXE) RIS_REG[0] <= 1'b1;
+
+            if (IC_REG[1]) RIS_REG[1] <= 1'b0;
+            else if (RXF) RIS_REG[1] <= 1'b1;
+            
+            if (IC_REG[2]) RIS_REG[2] <= 1'b0;
+            else if (TXB) RIS_REG[2] <= 1'b1;
+            
+            if (IC_REG[3]) RIS_REG[3] <= 1'b0;
+            else if (RXA) RIS_REG[3] <= 1'b1;
+            
+            if (IC_REG[4]) RIS_REG[4] <= 1'b0;
+            else if (BRK) RIS_REG[4] <= 1'b1;
+            
+            if (IC_REG[5]) RIS_REG[5] <= 1'b0;
+            else if (MATCH) RIS_REG[5] <= 1'b1;
+            
+            if (IC_REG[6]) RIS_REG[6] <= 1'b0;
+            else if (FE) RIS_REG[6] <= 1'b1;
+            
+            if (IC_REG[7]) RIS_REG[7] <= 1'b0;
+            else if (PRE) RIS_REG[7] <= 1'b1;
+            
+            if (IC_REG[8]) RIS_REG[8] <= 1'b0;
+            else if (OR) RIS_REG[8] <= 1'b1;
+            
+            if (IC_REG[9]) RIS_REG[9] <= 1'b0;
+            else if (RTO) RIS_REG[9] <= 1'b1;
+        end
     end
 
   assign IRQ = |MIS_REG;
@@ -325,23 +316,23 @@ module EF_UART_AHBL #(
       .tx(tx)
   );
 
-  assign	HRDATA = 
-			(last_HADDR[16-1:0] == RXDATA_REG_OFFSET)	? RXDATA_WIRE :
-			(last_HADDR[16-1:0] == PR_REG_OFFSET)	? PR_REG :
-			(last_HADDR[16-1:0] == CTRL_REG_OFFSET)	? CTRL_REG :
-			(last_HADDR[16-1:0] == CFG_REG_OFFSET)	? CFG_REG :
-			(last_HADDR[16-1:0] == MATCH_REG_OFFSET)	? MATCH_REG :
-			(last_HADDR[16-1:0] == RX_FIFO_LEVEL_REG_OFFSET)	? RX_FIFO_LEVEL_WIRE :
-			(last_HADDR[16-1:0] == RX_FIFO_THRESHOLD_REG_OFFSET)	? RX_FIFO_THRESHOLD_REG :
-			(last_HADDR[16-1:0] == RX_FIFO_FLUSH_REG_OFFSET)	? RX_FIFO_FLUSH_REG :
-			(last_HADDR[16-1:0] == TX_FIFO_LEVEL_REG_OFFSET)	? TX_FIFO_LEVEL_WIRE :
-			(last_HADDR[16-1:0] == TX_FIFO_THRESHOLD_REG_OFFSET)	? TX_FIFO_THRESHOLD_REG :
-			(last_HADDR[16-1:0] == TX_FIFO_FLUSH_REG_OFFSET)	? TX_FIFO_FLUSH_REG :
-			(last_HADDR[16-1:0] == IM_REG_OFFSET)	? IM_REG :
-			(last_HADDR[16-1:0] == MIS_REG_OFFSET)	? MIS_REG :
-			(last_HADDR[16-1:0] == RIS_REG_OFFSET)	? RIS_REG :
-			(last_HADDR[16-1:0] == GCLK_REG_OFFSET)	? GCLK_REG :
-			32'hDEADBEEF;
+  assign    HRDATA = 
+            (last_HADDR[16-1:0] == RXDATA_REG_OFFSET)    ? RXDATA_WIRE :
+            (last_HADDR[16-1:0] == PR_REG_OFFSET)    ? PR_REG :
+            (last_HADDR[16-1:0] == CTRL_REG_OFFSET)    ? CTRL_REG :
+            (last_HADDR[16-1:0] == CFG_REG_OFFSET)    ? CFG_REG :
+            (last_HADDR[16-1:0] == MATCH_REG_OFFSET)    ? MATCH_REG :
+            (last_HADDR[16-1:0] == RX_FIFO_LEVEL_REG_OFFSET)    ? RX_FIFO_LEVEL_WIRE :
+            (last_HADDR[16-1:0] == RX_FIFO_THRESHOLD_REG_OFFSET)    ? RX_FIFO_THRESHOLD_REG :
+            (last_HADDR[16-1:0] == RX_FIFO_FLUSH_REG_OFFSET)    ? RX_FIFO_FLUSH_REG :
+            (last_HADDR[16-1:0] == TX_FIFO_LEVEL_REG_OFFSET)    ? TX_FIFO_LEVEL_WIRE :
+            (last_HADDR[16-1:0] == TX_FIFO_THRESHOLD_REG_OFFSET)    ? TX_FIFO_THRESHOLD_REG :
+            (last_HADDR[16-1:0] == TX_FIFO_FLUSH_REG_OFFSET)    ? TX_FIFO_FLUSH_REG :
+            (last_HADDR[16-1:0] == IM_REG_OFFSET)    ? IM_REG :
+            (last_HADDR[16-1:0] == MIS_REG_OFFSET)    ? MIS_REG :
+            (last_HADDR[16-1:0] == RIS_REG_OFFSET)    ? RIS_REG :
+            (last_HADDR[16-1:0] == GCLK_REG_OFFSET)    ? GCLK_REG :
+            32'hDEADBEEF;
 
   assign HREADYOUT = 1'b1;
 
